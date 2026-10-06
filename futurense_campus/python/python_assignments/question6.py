@@ -1,18 +1,43 @@
-def build_experiment_config(base, *, run_name,
-                        parameter_updates=None, **metadata):
-    result = base.copy()
+import copy
+from typing import Dict, Any
+
+
+def validate_run_name(run_name: str):
+    if type(run_name) != str:
+        raise TypeError("run_name must be a string")
     stripped_run_name = run_name.strip()
-    if len(stripped_run_name) == 0:
+    if stripped_run_name:
+        pass
+    else:
         raise ValueError("run_name must be non-empty")
-    result["run_name"] = stripped_run_name
-    result["parameters"] = result["parameters"].copy()
-    if parameter_updates and type(parameter_updates)==dict:
-        result["parameters"].update(parameter_updates)
+    return stripped_run_name
+
+def validate_parameter_updates(result_dict: dict, parameter_updates):
+
+    if type(parameter_updates)!=dict :
+        # print("parameter_updates ", parameter_updates,type(parameter_updates))
+        raise TypeError("parameter_updates must be a dictionary")
     elif parameter_updates is None:
         pass
     else:
-        raise TypeError("parameter_updates must be a dictionary")
-    result["metadata"] = result["metadata"].copy()
+        print("result ",result_dict)
+        for key in parameter_updates:
+            if key not in result_dict["parameters"]:
+                print(key, "not in ",result_dict["parameters"])
+                raise KeyError(f"Parameter {key} not present")
+
+            result_dict["parameters"].update(copy.deepcopy(parameter_updates))
+
+
+def build_experiment_config(base, *, run_name,
+                        parameter_updates=None, **metadata)-> Dict[str, Any]:
+
+    stripped_run_name = validate_run_name(run_name)
+
+    result = copy.deepcopy(base)
+    result["run_name"] = stripped_run_name
+    validate_parameter_updates(result, parameter_updates)
+    result["metadata"] = copy.deepcopy(result["metadata"])
     result["metadata"].update(metadata)
     return result
 
@@ -36,14 +61,14 @@ if __name__ == "__main__":
         parameter_updates={"threshold": 0.7},
         owner="nlp_team", seed=42,
     )
-    another_result = build_experiment_config(
-        base, run_name="trial_02",
-        parameter_updates={"threshold": 0.7,"max_tokens": 256,"t":123},
-        seed=42,
-    )
+    # another_result = build_experiment_config(
+    #     base, run_name="trial_02",
+    #     parameter_updates={"threshold": 0.7,"max_tokens": 256,"t":123},
+    #     seed=42,
+    # )
 
     print(result)
-    print(another_result)
+    # print(another_result)
 
 
 # {

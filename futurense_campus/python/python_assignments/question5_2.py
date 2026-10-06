@@ -2,7 +2,7 @@ import json
 from collections import deque
 
 def creating_queue(curr_queue):
-    new_queue= list()
+    new_queue= deque()
     set_queue = set()
     for val in curr_queue:
         if val not in set_queue:
@@ -11,20 +11,16 @@ def creating_queue(curr_queue):
     return new_queue
 
 def add_incoming_to_queue(curr_queue, incoming_tasks,priority):
-    if priority not in incoming_tasks:
-        curr_queue.insert(0, priority)
     for item in incoming_tasks:
-
         if item not in curr_queue and item != priority:
             curr_queue.append(item)
         elif item == priority:
             if item not in curr_queue:
-                pass
+                curr_queue.appendleft(item)
             else:
                 # Move priority to the front
                 curr_queue.remove(item)
-            curr_queue.insert(0,item)
-
+                curr_queue.appendleft(item)
         elif priority is None:
             pass
     return curr_queue
@@ -41,7 +37,7 @@ def remove_completed_tasks_from_queue(curr_queue, elements):
 
 def validate_batch_size(batch_size):
 
-    if batch_size >= 0 and type(batch_size) not in (bool, float, str):
+    if batch_size > 0 and type(batch_size) not in (bool, float, str):
             pass
     else:
         raise ValueError("Batch size must be a non-negative integer")
@@ -54,7 +50,7 @@ def get_next_batch(curr_queue, batch_size):
         next_batch.append(curr_queue[i])
     return next_batch
 
-def update_annotation_queue(queue:list, incoming:list, completed:list, priority=None, batch_size=3):
+def update_annotation_queue(queue, incoming, completed, priority=None, batch_size=3):
     validate_batch_size(batch_size)
     user_queue = creating_queue(queue)
     print("Queue created as ",user_queue)
@@ -64,7 +60,7 @@ def update_annotation_queue(queue:list, incoming:list, completed:list, priority=
 
     # queue = add_priority_to_queue(queue, priority)
     user_queue = remove_completed_tasks_from_queue(user_queue, completed)
-    # print("After removing completion tasks", user_queue)
+    print("After removing completion tasks", user_queue)
 
     next_batch = get_next_batch(user_queue, batch_size)
     print("Last Item",user_queue[-1])

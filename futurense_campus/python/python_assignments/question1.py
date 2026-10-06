@@ -20,33 +20,57 @@ def is_score_is_valid(score):
 def is_eligible(score):
     return True if float(score)>=60 else False
 
+def is_learner_id_valid(learner_id):
+    if type(learner_id) == str and len(learner_id.strip()) > 0:
+        return True
+    return False
+
+def validate_score(score):
+    if type(score) == bool:
+        return None
+    if type(score) in (int, float):
+        value = float(score)
+    elif type(score) == str:
+        try:
+            value = float(score)
+        except ValueError:
+            return None
+    else:
+        return None
+
+    if is_score_is_valid(value):
+        return value
+    return None
+
+def validate_and_parse_record(record):
+    if type(record) != dict:
+        return None
+    if not ('score' in record and 'learner_id' in record):
+        return None
+
+    if not is_learner_id_valid(record["learner_id"]):
+        return None
+    stripped_learner_id = record["learner_id"].strip()
+    if type(stripped_learner_id) != str or len(stripped_learner_id) == 0:
+        return None
+    curr_score = record['score']
+    score = validate_score(curr_score)
+
+    if score is not None:
+        return {"learner_id": stripped_learner_id,
+            "score": score,
+            "eligible": is_eligible(score)
+            }
+
+
 
 def clean_training_records(records):
     cleaned = []
     rejected_indices = []
-    # if 'score' in records and 'learner_id' in records:
     for i, record in enumerate(records):
-        if type(record) ==dict and 'score' in record and 'learner_id' in record:
-            if type(record["learner_id"]) == str and len(record["learner_id"].strip()):
-                stripped_learner_id = record["learner_id"].strip()
-                if type(record["score"]) == str:
-                    try:
-                        value = float(record["score"])
-                    except ValueError:
-                        rejected_indices.append(i)
-                        continue
-                elif type(record["score"])== int or type(record["score"])== float:
-                    value = float(record["score"])
-                else:
-                    rejected_indices.append(i)
-                    continue
-                print("Value",value)
-                if is_score_is_valid(value) and value is not None:
-                    cleaned.append({"learner_id": stripped_learner_id, "score": value, "eligible": is_eligible(value)})
-                else:
-                    rejected_indices.append(i)
-            else:
-                rejected_indices.append(i)
+        cleaned_record = validate_and_parse_record(record)
+        if cleaned_record is not None:
+            cleaned.append(cleaned_record)
         else:
             rejected_indices.append(i)
 

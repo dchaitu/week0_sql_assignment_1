@@ -1,4 +1,4 @@
-from collections import defaultdict
+from typing import Any
 
 
 def get_final_record_per_caller_id(records):
@@ -52,7 +52,7 @@ def get_tool_ranking(by_tool):
 
 
 
-def summarise_tool_calls(records):
+def summarise_tool_calls(records: list[dict[str, Any]]):
     result = {}
     # tool_caller_id_wise_status = call_details_by_tool(records)
     final_record_per_caller_id = get_final_record_per_caller_id(records)

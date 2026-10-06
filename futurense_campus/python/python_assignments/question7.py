@@ -1,55 +1,49 @@
-def get_rejected_positions(batch_items):
+import math
+
+
+def get_valid_scores_and_rejected_positions(batch_items):
     rejected_positions = []
+    scores = []
 
     for i,batch in enumerate(batch_items):
-        print("batch ",batch)
         for j,num in enumerate(batch):
-            if type(num) == int or type(batch) == float and 0 <= batch <= 100:
-                pass
+            if type(num) in (int, float) and math.isfinite(num) and 0 <= num <= 100:
+                scores.append((i,j,float(num)))
             else:
-                # raise ValueError("All batches must have the same length")
                 rejected_positions.append((i,j))
 
-    return rejected_positions
-
-def get_valid_scores(batch_items, rejected_positions):
-    scores = []
-    for i,batch in enumerate(batch_items):
-        print("batch ",batch)
-        for j,num in enumerate(batch):
-            if (i,j) not in rejected_positions:
-                scores.append((i,j,num))
-    return scores
+    return scores, rejected_positions
 
 
-# def get_rejected_positions(*batches):
-#     batch_items = batches[0]
-#     for batch in batch_items:
-#         if type(batch):
-#             pass
 def validate_top_n(top_n):
     if type(top_n) != int or top_n < 0:
         raise ValueError("top_n must be a non-negative integer")
 
 def validate_batches(batches):
     for batch in batches:
-        if type(batch) != list and type(batch) != tuple:
-            raise ValueError("All batches must be lists or tuples")
+        if type(batch) not in (list, tuple):
+            raise TypeError("All batches must be lists or tuples")
+
+def get_mean(scores:list, count:int):
+    if count == 0:
+        return None
+    else:
+        mean = sum(score[2] for score in scores)/count
+        return round(mean,2)
 
 def aggregate_scores(*batches, top_n=3):
     validate_top_n(top_n)
     batch_items = list(batches)
     print("batch_items ",batch_items)
     validate_batches(batch_items)
-    rejected_positions = get_rejected_positions(batch_items)
+    scores,rejected_positions = get_valid_scores_and_rejected_positions(batch_items)
     print("rejected_positions ",rejected_positions)
-    scores = get_valid_scores(batch_items,rejected_positions)
     sorted_scores = sorted(scores, key=lambda x:(x[2],-x[0],-x[1]),reverse=True)
     print("sorted_scores ",sorted_scores)
     top_scores = sorted_scores[:top_n]
     print("top_scores ",top_scores)
     valid_count = len(sorted_scores)
-    mean = sum(score[2] for score in scores)/valid_count
+    mean = get_mean(sorted_scores, valid_count)
     result = {
         "valid_count": valid_count,
         "mean": mean,

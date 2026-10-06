@@ -3,29 +3,39 @@ from collections import defaultdict, Counter
 
 
 def audit_dataset_ids(train_ids, validation_ids):
-    # answer = {}
-    # train_ids = [id.strip() for id in train_ids if id is not None]
-    # validation_ids = [id.strip() for id in validation_ids if id is not None]
-    filtered_train_ids = get_filtered_ids(train_ids)
-    filtered_validation_ids = get_filtered_ids(validation_ids)
+    filtered_train_ids,invalid_train_indices = get_filtered_ids_and_invalid_indices(train_ids)
+    filtered_validation_ids,invalid_indices = get_filtered_ids_and_invalid_indices(validation_ids)
     result = defaultdict(list)
     result["train_duplicates"] = get_duplicates(filtered_train_ids)
     result["validation_duplicates"] = get_duplicates(filtered_validation_ids)
-    result["overlap"] = get_common_ids(filtered_train_ids, filtered_validation_ids)
-    result["train_only"] = get_unique_ids(filtered_train_ids, filtered_validation_ids)
-    result["validation_only"] = get_unique_ids(filtered_validation_ids, filtered_train_ids)
-    result["invalid_train_indices"] = [train_ids.index(id) for id in train_ids if id is None or len(id.strip())==0]
-    result["invalid_validation_indices"] = [validation_ids.index(id) for id in validation_ids if id is None or len(id.strip())==0]
+    result["overlap"] = sorted(set(filtered_train_ids) & set(filtered_validation_ids))
+    result["train_only"] = sorted(get_unique_ids(filtered_train_ids, filtered_validation_ids))
+    result["validation_only"] = sorted(get_unique_ids(filtered_validation_ids, filtered_train_ids))
+    result["invalid_train_indices"] = invalid_train_indices
+    result["invalid_validation_indices"] = invalid_indices
     result["snapshots"] = {"train": frozenset(filtered_train_ids), "validation": frozenset(filtered_validation_ids)}
     return result
 
-def get_filtered_ids(ids):
-    return [id.strip() for id in ids if id is not None and len(id.strip())>0 ]
+def get_filtered_ids_and_invalid_indices(ids):
+    filtered_ids = []
+    invalid_indices = []
+    for i,id in enumerate(ids):
+        if id is None:
+            invalid_indices.append(i)
+        elif type(id)==str:
+            if len(id.strip())>0:
+                filtered_ids.append(id.strip())
+            else:
+                invalid_indices.append(i)
+        elif type(id) in (int, float):
+            filtered_ids.append(str(id))
+
+    return filtered_ids,invalid_indices
 
 def get_duplicates(ids):
     id_dict= Counter(ids)
     print("id_dict ",id_dict)
-    return [id for id, count in id_dict.items() if count > 1]
+    return sorted([id for id, count in id_dict.items() if count > 1])
 
 def get_common_ids(ids1, ids2):
     unique_ids1 = list(Counter(ids1).keys())

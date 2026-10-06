@@ -59,21 +59,12 @@ def get_actual_details(labels: list[str],results: list[dict]):
             actual_dict[label] = {"total": labels.count(label), "correct": correct_label[label]}
     return actual_dict
 
-def get_misclassified_ids(results: list[dict]):
-    misclassified_ids = []
-    for result in results:
-        if result["predicted"] is not None and result["actual"] is not None:
-            if result["actual"].lower().strip() != result["predicted"].lower().strip():
-                misclassified_ids.append(result["id"])
-    return misclassified_ids
-
 
 def validate_accuracy(answer):
     try:
         accuracy = round(answer["correct_count"] / answer["valid_count"], 4)
         return accuracy
     except ZeroDivisionError:
-        print("Valid count is 0")
         return None
 
 
@@ -84,7 +75,6 @@ def summarise_predictions(results: list[dict]):
     correct_count, misclassified_ids= get_correct_count_and_misclassified_ids(results)
     answer["valid_count"] = valid_count
     answer["correct_count"] = correct_count
-    validate_accuracy(answer)
     answer["accuracy"] = validate_accuracy(answer)
     answer["by_actual"] = get_actual_details(labels,results)
     answer["misclassified_ids"] = misclassified_ids
