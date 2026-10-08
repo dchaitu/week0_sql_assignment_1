@@ -1,7 +1,9 @@
 import json
 from collections import deque
+from typing import Optional
 
-def creating_queue(curr_queue):
+
+def creating_queue(curr_queue: list):
     new_queue= list()
     set_queue = set()
     for val in curr_queue:
@@ -10,26 +12,20 @@ def creating_queue(curr_queue):
             set_queue.add(val)
     return new_queue
 
-def add_incoming_to_queue(curr_queue, incoming_tasks,priority):
-    if priority not in incoming_tasks:
+def add_priority(curr_queue: list,priority: Optional[str] = None):
+    if priority is not None and priority in curr_queue:
+        curr_queue.remove(priority)
         curr_queue.insert(0, priority)
+
+
+def add_incoming_to_queue(curr_queue: list, incoming_tasks: list):
+
     for item in incoming_tasks:
-
-        if item not in curr_queue and item != priority:
+        if item not in curr_queue:
             curr_queue.append(item)
-        elif item == priority:
-            if item not in curr_queue:
-                pass
-            else:
-                # Move priority to the front
-                curr_queue.remove(item)
-            curr_queue.insert(0,item)
-
-        elif priority is None:
-            pass
     return curr_queue
 
-def remove_completed_tasks_from_queue(curr_queue, elements):
+def remove_completed_tasks_from_queue(curr_queue: list, elements: list):
 
     for item in elements:
         try:
@@ -39,14 +35,12 @@ def remove_completed_tasks_from_queue(curr_queue, elements):
             pass
     return curr_queue
 
-def validate_batch_size(batch_size):
+def validate_batch_size(batch_size: int):
 
-    if batch_size >= 0 and type(batch_size) not in (bool, float, str):
-            pass
-    else:
+    if type(batch_size) is not int or batch_size < 0:
         raise ValueError("Batch size must be a non-negative integer")
 
-def get_next_batch(curr_queue, batch_size):
+def get_next_batch(curr_queue: list, batch_size: int):
     next_batch = []
     if len(curr_queue) < batch_size:
         return list(curr_queue)
@@ -58,16 +52,16 @@ def update_annotation_queue(queue:list, incoming:list, completed:list, priority=
     validate_batch_size(batch_size)
     user_queue = creating_queue(queue)
     print("Queue created as ",user_queue)
-    user_queue = add_incoming_to_queue(user_queue,incoming,priority)
+    user_queue = add_incoming_to_queue(user_queue,incoming)
     print("After adding incoming",user_queue)
 
 
     # queue = add_priority_to_queue(queue, priority)
     user_queue = remove_completed_tasks_from_queue(user_queue, completed)
     # print("After removing completion tasks", user_queue)
+    user_queue = add_priority(user_queue, priority)
 
     next_batch = get_next_batch(user_queue, batch_size)
-    print("Last Item",user_queue[-1])
     # last_item = queue
 
     positions_list = []

@@ -20,15 +20,15 @@ def get_filtered_ids_and_invalid_indices(ids):
     filtered_ids = []
     invalid_indices = []
     for i,id in enumerate(ids):
-        if id is None:
-            invalid_indices.append(i)
-        elif type(id)==str:
+        # if id is None:
+        #     invalid_indices.append(i)
+        if type(id)==str:
             if len(id.strip())>0:
                 filtered_ids.append(id.strip())
             else:
                 invalid_indices.append(i)
-        elif type(id) in (int, float):
-            filtered_ids.append(str(id))
+        else:
+            invalid_indices.append(str(id))
 
     return filtered_ids,invalid_indices
 
